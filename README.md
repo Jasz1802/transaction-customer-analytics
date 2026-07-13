@@ -26,13 +26,13 @@ prueba_tecnica_analista_junior_iris/
 │
 ├── data/
 │   ├── clientes.json
-│   └── transacciones.csv
+|   └── transacciones.csv
 │
 ├── dashboard/
 │   └── dashboard.pbix
 │
 ├── notebooks/
-│   └── limpieza_datos.ipynb
+│   └── limpieza_datos_prueba.ipynb
 │
 ├── output/
 │   └── union_transacciones_clientes_limpia.csv
