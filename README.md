@@ -78,7 +78,7 @@ pip install -r requirements.txt
 Finalmente, ejecutar el notebook ubicado en:
 
 ```
-notebooks/limpieza_datos.ipynb
+notebooks/limpieza_datos_prueba.ipynb
 ```
 
 siguiendo el orden de las celdas.
