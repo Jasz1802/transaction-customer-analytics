@@ -1,38 +1,42 @@
-# Prueba Técnica - Analista Junior IRIS (Jennyfer Arias Sánchez)
+# Data Cleaning & Integration with PySpark
 
 ## Descripción
 
-Este proyecto corresponde a la solución de la prueba técnica para el cargo de **Analista Junior**.
+Proyecto de **exploración, limpieza, estandarización e integración de datos** desarrollado con **PySpark**, a partir de información de transacciones y clientes almacenada en diferentes formatos.
 
-El objetivo fue realizar un proceso de **exploración, limpieza, estandarización e integración de datos** a partir de los archivos `transacciones.csv` y `clientes.json` utilizando **PySpark**, obteniendo un único conjunto de datos limpio para posteriormente construir un dashboard en **Power BI**.
+El proyecto aborda un proceso completo de preparación de datos, desde la identificación de problemas de calidad hasta la generación de un conjunto de datos limpio y estructurado para su posterior análisis y visualización en **Power BI**.
 
----
-
-# Tecnologías utilizadas
-
-- Python 3.11
-- PySpark 3.5.6
-- Java JDK 17
-- Hadoop (WinUtils para Windows)
-- Power BI
-- Git
+El flujo incluye transformación de fechas, normalización de categorías, tratamiento de valores faltantes, validación de duplicados, transformación de tipos de datos y unión de diferentes fuentes de información.
 
 ---
 
-# Estructura del proyecto
+## Tecnologías utilizadas
 
-```
-prueba_tecnica_analista_junior_iris/
+* Python 3.11
+* PySpark 3.5.6
+* Java JDK 17
+* Hadoop / WinUtils
+* Power BI
+* Jupyter Notebook
+* Git
+
+---
+
+## Estructura del proyecto
+
+```text
+data_cleaning_integration/
+
 │
 ├── data/
 │   ├── clientes.json
-|   └── transacciones.csv
+│   └── transacciones.csv
 │
 ├── dashboard/
 │   └── dashboard.pbix
 │
 ├── notebooks/
-│   └── limpieza_datos_prueba.ipynb
+│   └── limpieza_datos.ipynb
 │
 ├── output/
 │   └── union_transacciones_clientes_limpia.csv
@@ -44,18 +48,18 @@ prueba_tecnica_analista_junior_iris/
 
 ---
 
-# 1. ¿Qué se necesita para ejecutar el código?
+# 1. Entorno y ejecución
 
-Para ejecutar correctamente el proyecto es necesario contar con el siguiente entorno:
+Para ejecutar el proyecto se requiere:
 
-- Python 3.11
-- Java JDK 17
-- PySpark 3.5.6
-- Hadoop (WinUtils) configurado para Windows
-- Jupyter Notebook o Visual Studio Code con la extensión de Jupyter
-- Las dependencias especificadas en el archivo `requirements.txt`
+* Python 3.11
+* Java JDK 17
+* PySpark 3.5.6
+* Hadoop / WinUtils configurado para Windows
+* Jupyter Notebook o Visual Studio Code con extensión de Jupyter
+* Dependencias especificadas en `requirements.txt`
 
-## Instalación
+### Instalación
 
 Crear el entorno virtual:
 
@@ -63,7 +67,7 @@ Crear el entorno virtual:
 python -m venv .venv
 ```
 
-Activar el entorno virtual (PowerShell):
+Activar el entorno virtual en PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
@@ -75,260 +79,302 @@ Instalar las dependencias:
 pip install -r requirements.txt
 ```
 
-Finalmente, ejecutar el notebook ubicado en:
+Ejecutar el notebook:
 
-```
-notebooks/limpieza_datos_prueba.ipynb
+```text
+notebooks/limpieza_datos.ipynb
 ```
 
-siguiendo el orden de las celdas.
+Las celdas deben ejecutarse en orden para reproducir el proceso completo de transformación.
 
 ---
 
-# 2. ¿Qué se encontró?
+# 2. Exploración y calidad de los datos
 
-Durante la exploración de los archivos **Transacciones** y **Clientes** se identificaron diferentes problemas de calidad de datos que requerían limpieza y estandarización antes de realizar la unión de la información.
+Durante la exploración de las fuentes se identificaron diferentes problemas de calidad que requerían tratamiento antes de integrar la información.
 
-## Archivo Transacciones
+## Transacciones
 
 ### Sucursal
 
-Se encontraron nombres de ciudades escritos de diferentes formas (por ejemplo: **BOGOTA**, **Bogotá**, **bogota**), además de espacios al inicio y al final de algunos registros.
+Se encontraron nombres de ciudades escritos con diferentes combinaciones de mayúsculas, minúsculas, tildes y espacios.
 
-Se eliminaron los espacios y se unificó el formato utilizando mayúscula inicial y la acentuación correspondiente.
+Se realizó una normalización del texto para conservar una única representación de cada ciudad.
 
 ### Fecha
 
-Se identificaron múltiples formatos de fecha, como:
+Se identificaron múltiples formatos de fecha, incluyendo:
 
-- dd-mm-yyyy
-- yyyy-mm-dd
-- dd/mm/yyyy
-- dd.mm.yyyy
+* `dd-mm-yyyy`
+* `yyyy-mm-dd`
+* `dd/mm/yyyy`
+* `dd.mm.yyyy`
 
-entre otros.
+Las fechas fueron normalizadas y convertidas al formato estándar:
 
-Primero se unificó el separador y posteriormente todas las fechas se transformaron al formato estándar **YYYY-MM-DD**, facilitando su tratamiento como tipo fecha.
+```text
+YYYY-MM-DD
+```
+
+permitiendo su posterior tratamiento como tipo `date`.
 
 ### Monto
 
-Los valores presentaban distintos formatos según la moneda, incluyendo:
+Los valores presentaban diferentes representaciones dependiendo de la moneda, incluyendo:
 
-- símbolos ($)
-- texto (COP)
-- separadores de miles
-- decimales diferentes entre COP y USD
-- valores como **N/A** o **sin dato**
+* Símbolos monetarios
+* Texto como `COP`
+* Separadores de miles
+* Diferentes formatos decimales
+* Valores como `N/A` o `sin dato`
 
-Se eliminaron los caracteres no numéricos y se estandarizó el formato para convertir la columna a un tipo numérico.
+Se realizó una limpieza de caracteres y una transformación a formato numérico.
 
 ### Tasa de interés
 
-Se encontraron valores nulos, porcentajes escritos con `%` y otros en formato decimal.
+Se encontraron valores nulos, porcentajes representados con `%` y valores expresados directamente en formato decimal.
 
-Se eliminaron los caracteres innecesarios y se normalizó el formato numérico.
+Se normalizó la información para obtener una representación numérica consistente.
 
 ### Moneda
 
-Existían diferentes representaciones para una misma moneda (por ejemplo: **COP**, **cop**, **Pesos**, **$**, **USD**, **Dólares**).
+Se identificaron diferentes representaciones para una misma moneda, por ejemplo:
 
-Se unificaron todas las categorías en dos valores estándar:
+* `COP`
+* `cop`
+* `Pesos`
+* `$`
+* `USD`
+* `Dólares`
 
-- COP
-- USD
+Los valores fueron estandarizados en las categorías:
+
+* `COP`
+* `USD`
 
 ### Estado
 
-Se encontraron diferentes formas de representar el mismo estado, como:
+Se encontraron diferentes formas de representar los estados de las transacciones, como:
 
-- APROBADA
-- aprobado
-- pend
-- En proceso
-- rechazada
+* `APROBADA`
+* `aprobado`
+* `pend`
+* `En proceso`
+* `rechazada`
 
-Se estandarizaron en tres únicos valores:
+Se normalizaron en tres categorías:
 
-- Aprobada
-- Pendiente
-- Rechazada
+* `Aprobada`
+* `Pendiente`
+* `Rechazada`
 
 ### Canal
 
-Se identificaron diferencias en mayúsculas, minúsculas, abreviaturas y nombres completos (por ejemplo: **web**, **WEB**, **ATM**, **Cajero automático**, **App móvil**).
+Se identificaron diferencias entre mayúsculas, minúsculas, abreviaturas y nombres completos, por ejemplo:
 
-Se normalizaron los nombres para mantener una única representación por canal.
+* `web`
+* `WEB`
+* `ATM`
+* `Cajero automático`
+* `App móvil`
+
+Se realizó una estandarización para mantener una representación única por canal.
 
 ### Tipo de producto
 
-Un mismo producto aparecía con diferentes nombres o abreviaturas, como:
+Un mismo producto aparecía con diferentes nombres o abreviaturas, por ejemplo:
 
-- CTA_AHORROS
-- Cuenta Ahorros
-- Ahorros
-- Certificado de Depósito
+* `CTA_AHORROS`
+* `Cuenta Ahorros`
+* `Ahorros`
+* `Certificado de Depósito`
 
-Se realizó una estandarización para conservar un único nombre por tipo de producto.
+Se normalizaron las categorías para conservar una única representación por tipo de producto.
 
 ---
 
-## Archivo Clientes
+## Clientes
 
 ### Ciudad
 
 Se encontraron diferencias en mayúsculas, tildes y espacios adicionales.
 
-Se eliminaron los espacios y se unificó el formato de escritura.
+Se realizó una limpieza y normalización de los valores.
 
 ### Fecha de alta
 
-Al igual que en transacciones, se identificaron múltiples formatos de fecha e incluso meses escritos con abreviaturas (ene, mar, ago, etc.).
+Se identificaron múltiples formatos de fecha, incluyendo meses representados mediante abreviaturas como:
 
-Todas las fechas se transformaron al formato **YYYY-MM-DD**.
+* `ene`
+* `mar`
+* `ago`
+
+Las fechas fueron normalizadas y convertidas al formato:
+
+```text
+YYYY-MM-DD
+```
 
 ### Segmento
 
-Existían diferencias únicamente en el uso de mayúsculas y minúsculas (premium, Premium, EMPRESARIAL, pyme).
+Se encontraron diferencias únicamente en el uso de mayúsculas y minúsculas, por ejemplo:
 
-Se estandarizaron los valores manteniendo un único formato.
+* `premium`
+* `Premium`
+* `EMPRESARIAL`
+* `pyme`
+
+Los valores fueron estandarizados para mantener una representación consistente.
 
 ### Tipo de documento
 
-Se encontraron diferentes representaciones del mismo documento, como:
+Se encontraron diferentes representaciones para los documentos, como:
 
-- CC
-- cc
-- C.C.
-- NIT
-- nit
+* `CC`
+* `cc`
+* `C.C.`
+* `NIT`
+* `nit`
 
-Se unificaron en los valores:
+Se unificaron en:
 
-- CC
-- NIT
+* `CC`
+* `NIT`
 
 ### Activo
 
-La columna contenía diferentes formas de representar valores booleanos:
+La columna contenía diferentes representaciones de valores booleanos:
 
-- SI
-- NO
-- true
-- false
-- 1
-- 0
+* `SI`
+* `NO`
+* `true`
+* `false`
+* `1`
+* `0`
 
-Todos los registros se transformaron al tipo de dato booleano (`true` y `false`).
+Los registros fueron transformados al tipo booleano:
 
-### Contacto
+```text
+true / false
+```
 
-La información de contacto se encontraba almacenada como una estructura con correo electrónico y teléfono.
+### Información de contacto
 
-Se separó en dos columnas independientes (`email` y `telefono`) y el número telefónico fue normalizado eliminando caracteres especiales como espacios, paréntesis y guiones.
+La información de contacto se encontraba almacenada como una estructura que contenía correo electrónico y teléfono.
+
+Se separó en dos columnas independientes:
+
+* `email`
+* `telefono`
+
+El número telefónico fue normalizado eliminando caracteres especiales como espacios, paréntesis y guiones.
 
 ---
 
-# 3. ¿Qué se decidió hacer con las fechas distintas a 2024, duplicados, clientes no identificados, datos faltantes y valores negativos?
+# 3. Criterios de tratamiento de los datos
 
-## Fechas distintas a 2024
+## Fechas fuera de 2024
 
-Se decidió conservar los registros con fechas diferentes a 2024, ya que hacen parte de la información original de la base de datos y no existía un requerimiento que indicara eliminarlos.
+Se conservaron los registros con fechas diferentes a 2024 debido a que hacen parte de la información disponible y no existía un criterio de negocio que justificara su eliminación.
 
-Además, como el objetivo final era construir un dashboard para analizar el comportamiento del negocio, resulta más útil mantener el histórico de la información.
-
-En caso de requerir un análisis para un año específico, como 2024, basta con utilizar un segmentador o filtro en el dashboard, sin necesidad de descartar datos durante el proceso de limpieza.
+Mantener el histórico permite realizar análisis sobre diferentes periodos y aplicar posteriormente filtros específicos desde la capa de visualización.
 
 ---
 
 ## Duplicados
 
-Se revisó cuidadosamente la existencia de registros duplicados, teniendo en cuenta que un mismo cliente puede realizar varias transacciones en un mismo día o adquirir diferentes productos, por lo que no era correcto eliminar registros únicamente por compartir el mismo `id_cliente`.
+Se realizó una validación de registros duplicados considerando la estructura de cada fuente.
 
-Para identificar duplicados reales se verificó que todas las columnas del registro fueran exactamente iguales, prestando especial atención al `id_transaccion`, ya que este identifica de manera única cada operación.
+En las transacciones no se eliminaron registros únicamente por compartir un mismo `id_cliente`, ya que un cliente puede realizar múltiples operaciones.
 
-En el caso del archivo **clientes.json**, sí se eliminaron los registros duplicados con el mismo `id_cliente`, debido a que este archivo almacena la información única de cada cliente y no debería contener más de un registro para un mismo identificador.
+Para identificar duplicados reales se consideró la totalidad del registro y, especialmente, el `id_transaccion` como identificador de cada operación.
+
+En la información de clientes se eliminaron registros duplicados asociados al mismo `id_cliente`, debido a que este identificador representa de manera única a cada cliente.
 
 ---
 
 ## Clientes no identificados
 
-Se decidió conservar las transacciones cuyos clientes no se encontraban en la tabla de clientes.
+Se conservaron las transacciones cuyo `id_cliente` no tenía correspondencia en la información de clientes.
 
-El motivo fue evitar sesgar los análisis, ya que estas transacciones siguen representando movimientos financieros válidos y contienen información importante, como el `id_transaccion`, el monto, la fecha y el producto.
+La integración se realizó mediante un `LEFT JOIN`, permitiendo conservar las transacciones y representar como `NULL` la información del cliente que no pudo ser asociada.
 
-Al realizar el **LEFT JOIN**, la información del cliente simplemente permanece como **NULL**, permitiendo identificar posteriormente qué transacciones no tienen un cliente asociado.
+De esta forma, los registros no identificados pueden ser analizados posteriormente como parte de la calidad de los datos.
 
 ---
 
 ## Datos faltantes
 
-Se decidió conservar los valores faltantes como **NULL** en el archivo CSV limpio para no alterar la información original.
+Los valores faltantes se conservaron como `NULL` durante el proceso de transformación para evitar modificar artificialmente la información original.
 
-Posteriormente, durante la construcción del dashboard, se utilizaron las herramientas de **Power Query** para mejorar la visualización:
+En la etapa de visualización se utilizaron representaciones más amigables para el usuario, por ejemplo:
 
-- "Desconocido" para la columna **segmento**.
-- "Sin información" para las demás columnas de texto.
-- Valores **Blank** para las columnas numéricas.
+* `Desconocido` para segmentos sin información.
+* `Sin información` para otros campos de texto.
+* `Blank` para valores numéricos sin información.
 
-Se evitó reemplazarlos por **0**, ya que esto podría alterar cálculos como promedios, sumas o indicadores financieros.
+Se evitó reemplazar valores faltantes por `0`, ya que hacerlo podría afectar cálculos como promedios, sumas e indicadores financieros.
 
 ---
 
 ## Valores negativos
 
-Se decidió conservar los valores negativos, ya que representan información que puede ser válida dentro del contexto del negocio, como devoluciones, retiros, ajustes contables o saldos pendientes.
+Los valores negativos fueron conservados debido a que pueden representar operaciones o situaciones válidas dentro de un contexto financiero, como devoluciones, ajustes, retiros o movimientos contables.
 
-Eliminarlos o convertirlos en valores positivos podría ocultar el estado real de las finanzas y generar análisis incorrectos.
-
----
-
-# 4. Uso de IA: dónde, por qué, para qué y qué se verificó
-
-Hice uso de Inteligencia Artificial como herramienta de apoyo durante el desarrollo de la prueba técnica, principalmente para resolver dudas puntuales, evaluar diferentes alternativas de implementación y solucionar inconvenientes técnicos.
-
-### Limpieza de fechas del archivo clientes.json
-
-Utilicé IA para definir una estrategia de estandarización de las fechas, ya que este archivo presentaba múltiples formatos y meses escritos como texto (por ejemplo: ene, feb, mar, ago), lo que ocasionaba que algunas fechas se convirtieran en valores **NULL** al intentar transformarlas directamente.
-
-Como una posible solución, la IA me propuso utilizar la configuración `spark.sql.legacy.timeParserPolicy = LEGACY`; sin embargo, decidí no implementarla, ya que únicamente ocultaba el problema de compatibilidad de los formatos y funcionaba como un parche.
-
-En su lugar, opté por normalizar previamente las fechas y traducir las abreviaturas de los meses antes de convertirlas al tipo `date`, obteniendo una solución más robusta y controlada.
-
-### Configuración del entorno de PySpark
-
-También utilicé IA para resolver inconvenientes relacionados con la configuración del entorno de desarrollo.
-
-Durante la prueba se presentaron problemas de compatibilidad entre la versión de Python instalada y algunas dependencias de PySpark, además de la configuración de Hadoop para la exportación de archivos.
-
-Como alternativa, la IA me sugirió finalizar el proceso utilizando Pandas para generar el archivo CSV; sin embargo, decidí mantener el desarrollo en PySpark, ya que era la herramienta recomendada para la prueba técnica y consideré que mantener todo el flujo en una sola tecnología hacía el proceso más consistente.
-
-### Resolución de errores
-
-También utilicé IA para comprender el origen de algunos errores generados por PySpark, como:
-
-- AnalysisException
-- Py4JJavaError
-
-Esto me permitió identificar la causa de los problemas y aplicar una solución adecuada.
-
-### Documentación
-
-Finalmente, utilicé IA como apoyo para redactar la documentación del proceso y las respuestas de este informe.
-
-La información fue proporcionada por mí y posteriormente verifiqué que la redacción reflejara correctamente el trabajo realizado.
-
-### Verificación
-
-En todos los casos utilicé la IA como una herramienta de apoyo y no como un reemplazo del proceso de análisis.
-
-Antes de implementar cualquier sugerencia, verifiqué que la solución resolviera el problema planteado, que los datos conservaran su consistencia y que las transformaciones produjeran el resultado esperado.
+Por esta razón, no fueron transformados automáticamente a valores positivos ni eliminados durante la limpieza.
 
 ---
 
-# Resultado final
+# 4. Integración de las fuentes
 
-Como resultado del proceso se obtuvo:
+Una vez finalizada la limpieza y estandarización, se integraron las fuentes de transacciones y clientes mediante el identificador:
 
-- Un notebook con todo el proceso de exploración, limpieza y transformación de datos utilizando PySpark.
-- Un archivo CSV limpio (`union_transacciones_clientes_limpia.csv`) obtenido a partir de la integración de las tablas de transacciones y clientes.
-- Un dashboard desarrollado en Power BI utilizando el conjunto de datos limpio como fuente de información.
+```text
+id_cliente
+```
+
+El resultado fue un conjunto de datos consolidado que combina la información de las transacciones con los atributos disponibles de cada cliente.
+
+El proceso permite mantener las transacciones sin correspondencia en la fuente de clientes, conservando la trazabilidad de los registros originales.
+
+---
+
+# 5. Visualización
+
+A partir del conjunto de datos limpio se desarrolló un dashboard en **Power BI**.
+
+El dashboard permite explorar la información mediante diferentes dimensiones y métricas, facilitando el análisis de:
+
+* Comportamiento de las transacciones
+* Montos
+* Estados
+* Canales
+* Productos
+* Monedas
+* Segmentos de clientes
+* Distribución temporal
+* Calidad y disponibilidad de la información
+
+El archivo `.pbix` se encuentra disponible dentro de la carpeta:
+
+```text
+dashboard/
+```
+
+---
+
+# 6. Resultado final
+
+Como resultado del proyecto se obtuvo:
+
+* Un notebook desarrollado en **PySpark** con el proceso de exploración, limpieza y transformación.
+* Un conjunto de datos consolidado a partir de las fuentes de clientes y transacciones.
+* Un archivo CSV limpio y estructurado:
+
+```text
+union_transacciones_clientes_limpia.csv
+```
+
+* Un dashboard desarrollado en **Power BI** para la exploración y análisis de los datos.
+
+El proyecto representa un flujo completo de **Data Cleaning → Data Transformation → Data Integration → Data Visualization**, utilizando herramientas orientadas al procesamiento y análisis de datos.
